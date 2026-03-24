@@ -33,8 +33,8 @@
       <section class="hero">
         <div class="container">
           <div class="btns-wrapper" style="margin-bottom: 15px;">
-            <button onclick="speak('Правильно!')">✅ Правильно!</button>
-            <button onclick="speak('Неправильно!')">❌ Неправильно!</button>
+            <button onclick="speakQueue(['Это правильный ответ!'])">✅ Правильно!</button>
+            <button onclick="speakQueue(['Это неправильный ответ!'])">❌ Неправильно!</button>
           </div>
           <div class="swiper">
 
@@ -57,7 +57,6 @@
   <script>
     let selectedVoice = null;
 
-    // загрузка голосов
     function loadVoices() {
       const voices = speechSynthesis.getVoices();
 
@@ -69,66 +68,152 @@
     speechSynthesis.onvoiceschanged = loadVoices;
     loadVoices();
 
-    function speak(text) {
-      const utterance = new SpeechSynthesisUtterance(text);
+    const PAUSE = 300;
 
-      if (selectedVoice) {
-        utterance.voice = selectedVoice;
+    function speakQueue(parts) {
+      speechSynthesis.cancel();
+
+      let index = 0;
+
+      function next() {
+        if (index >= parts.length) return;
+
+        const utterance = new SpeechSynthesisUtterance(parts[index]);
+
+        if (selectedVoice) {
+          utterance.voice = selectedVoice;
+        }
+
+        utterance.lang = "ru-RU";
+        utterance.rate = 1;
+        utterance.pitch = 1;
+
+        utterance.onend = () => {
+          index++;
+          setTimeout(next, PAUSE);
+        };
+
+        speechSynthesis.speak(utterance);
       }
 
-      utterance.lang = "ru-RU";
-      utterance.rate = 1;
-      utterance.pitch = 1;
-
-      speechSynthesis.cancel();
-      speechSynthesis.speak(utterance);
+      next();
     }
 
-
-    // 👉 НОВОЕ: функция показа ответа
     function showAnswer(index) {
       const answers = document.querySelectorAll(`#q${index} .answer`);
       const correctIndex = questions[index].correct;
 
       const isActive = answers[correctIndex].classList.contains('correct');
 
-      // если уже подсвечен → убираем
       if (isActive) {
         answers.forEach(a => a.classList.remove('correct'));
         return;
       }
 
-      // иначе показываем
       answers.forEach(a => a.classList.remove('correct'));
       answers[correctIndex].classList.add('correct');
     }
 
-    // 👉 добавили correct
     const questions = [
       {
-        question: "Какая планета самая большая в Солнечной системе?",
-        answers: ["Земля", "Марс", "Юпитер", "Венера", "Сатурн"],
+        question: "Фамилия ведущего программы Такси на ТНТ?",
+        answers: ["Бондарчук", "Нагиев", "Куличков", "Борисов", "Куценко"],
         correct: 2
       },
       {
-        question: "Сколько континентов на Земле?",
-        answers: ["5", "6", "7", "8", "9"],
-        correct: 2
+        question: "Какая из этих птиц в России не улетает на юг зимой?",
+        answers: ["Грач", "Цапля", "Галка", "Дрозд", "Снегирь"],
+        correct: 4
       },
       {
-        question: "Какой океан самый большой?",
-        answers: ["Атлантический", "Индийский", "Северный Ледовитый", "Тихий", "Южный"],
+        question: "Из чего был сделан домик у поросёнка Нуф-Нуф?",
+        answers: ["Кирпичи", "Солома", "Камни", "Ветки", "Снег"],
         correct: 3
       },
       {
-        question: "Кто написал Гарри Поттера?",
-        answers: ["Толкин", "Роулинг", "Кинг", "Мартин", "Пратчетт"],
+        question: "Самая распространённая фамилия в России?",
+        answers: ["Иванов", "Смирнов", "Сидоров", "Петров", "Васильев"],
         correct: 1
       },
       {
-        question: "Сколько дней в году?",
-        answers: ["360", "364", "365", "366", "370"],
+        question: "Кто такой пестун?",
+        answers: ["Оружейник", "Наставник", "Порода собак", "Политический деятель", "Певец"],
+        correct: 1
+      },
+      {
+        question: "У какого животного самые большие глаза?",
+        answers: ["Кальмар", "Бегемот", "Слон", "Косатка", "Страус"],
+        correct: 0
+      },
+      {
+        question: "Какую цифру не любят в Китае?",
+        answers: ["1", "4", "7", "9", "13"],
+        correct: 1
+      },
+      {
+        question: "Оттенки какого цвета человек различает лучше всего?",
+        answers: ["Красный", "Синий", "Серый", "Зелёный", "Чёрный"],
+        correct: 3
+      },
+      {
+        question: "Чей сплав называется электрум?",
+        answers: ["Золото и серебро", "Золото и медь", "Железо и медь", "Серебро и свинец", "Никель и цинк"],
+        correct: 0
+      },
+      {
+        question: "Как раньше называли Томск?",
+        answers: ["Столица Сибири", "Великое Междуречье", "Сибирские Афины", "Таёжный тупик", "Молодой Гарлем"],
         correct: 2
+      },
+      {
+        question: "Сколько оленей в упряжке Санта-Клауса?",
+        answers: ["2", "4", "6", "7", "9"],
+        correct: 4
+      },
+      {
+        question: "Как звали первую жену Адама?",
+        answers: ["Мария", "Ева", "Пенни", "Лилит", "Лилу"],
+        correct: 3
+      },
+      {
+        question: "В какой стране находится гора Арарат?",
+        answers: ["Армения", "Азербайджан", "Грузия", "Турция", "Россия"],
+        correct: 3
+      },
+      {
+        question: "Что такое маис?",
+        answers: ["Рис", "Кукуруза", "Помидор", "Картофель", "Гречка"],
+        correct: 1
+      },
+      {
+        question: "Сколько игроков было в сериале Игра в кальмара?",
+        answers: ["124", "246", "300", "456", "666"],
+        correct: 3
+      },
+      {
+        question: "Каких видов часов не бывает?",
+        answers: ["Песочные", "Механические", "Солнечные", "Магнитные", "Атомные"],
+        correct: 3
+      },
+      {
+        question: "Какую картину продали дороже всего?",
+        answers: ["Спаситель мира", "Крик", "Мальчик с трубкой", "Чёрный квадрат", "Звёздная ночь"],
+        correct: 0
+      },
+      {
+        question: "Что из этого изобрела женщина?",
+        answers: ["Телеграф", "Посудомоечная машина", "Телефон", "Стиральная машина", "Швейная машина"],
+        correct: 1
+      },
+      {
+        question: "Какой сферы нет в атмосфере?",
+        answers: ["Тропосфера", "Литосфера", "Стратосфера", "Мезосфера", "Термосфера"],
+        correct: 1
+      },
+      {
+        question: "Сколько рёбер у человека?",
+        answers: ["12", "15", "18", "24", "32"],
+        correct: 3
       }
     ];
 
@@ -138,12 +223,11 @@
       const slide = document.createElement('div');
       slide.className = 'swiper-slide';
 
-      const fullText = `
-    Вопрос ${i + 1}.
-    ${q.question}.
-    Варианты ответов.
-    ${q.answers.map((a, i) => `вариант ${i + 1}. ${a}`).join('. ')}
-  `;
+      const speechParts = [
+        `Вопрос ${i + 1}`,
+        q.question,
+        ...q.answers
+      ];
 
       slide.innerHTML = `
     <div id="q${i}">
@@ -158,7 +242,7 @@
 
       <br><br><br><br>
 
-      <button class="btn-answer" onclick='speak(${JSON.stringify(fullText)})'>
+      <button class="btn-answer" onclick='speakQueue(${JSON.stringify(speechParts)})'>
         Озвучить 🔊
       </button>
 
