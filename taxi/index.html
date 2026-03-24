@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="ru" class="page">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <!-- <link rel="icon" href="/favicon.svg" type="image/svg+xml"> -->
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <meta name="theme-color" content="#111111">
+
+  <title>Taxi</title>
+
+  <style>
+    .correct {
+      background: #4caf50;
+      color: white;
+    }
+  </style>
+
+  <link rel="stylesheet" href="/css/vendor.css">
+  <link rel="stylesheet" href="/css/main.css">
+  <script defer src="/js/main.js"></script>
+</head>
+
+<body class="page__body">
+  <div class="site-container">
+    <header class="header">
+      <div class="container">
+
+      </div>
+    </header>
+    <main class="main">
+      <section class="hero">
+        <div class="container">
+          <div class="btns-wrapper" style="margin-bottom: 15px;">
+            <button onclick="speak('Правильно!')">✅ Правильно!</button>
+            <button onclick="speak('Неправильно!')">❌ Неправильно!</button>
+          </div>
+          <div class="swiper">
+
+            <div class="swiper-button-prev"></div>
+            <div class="swiper-button-next"></div>
+
+            <div class="swiper-wrapper" id="slides"></div>
+          </div>
+        </div>
+      </section>
+    </main>
+    <footer class="footer">
+      <div class="container">
+
+      </div>
+    </footer>
+
+  </div>
+
+  <script>
+    let selectedVoice = null;
+
+    // загрузка голосов
+    function loadVoices() {
+      const voices = speechSynthesis.getVoices();
+
+      selectedVoice = voices.find(v =>
+        v.name === "Google русский" && v.lang === "ru-RU"
+      );
+    }
+
+    speechSynthesis.onvoiceschanged = loadVoices;
+    loadVoices();
+
+    function speak(text) {
+      const utterance = new SpeechSynthesisUtterance(text);
+
+      if (selectedVoice) {
+        utterance.voice = selectedVoice;
+      }
+
+      utterance.lang = "ru-RU";
+      utterance.rate = 1;
+      utterance.pitch = 1;
+
+      speechSynthesis.cancel();
+      speechSynthesis.speak(utterance);
+    }
+
+
+    // 👉 НОВОЕ: функция показа ответа
+    function showAnswer(index) {
+      const answers = document.querySelectorAll(`#q${index} .answer`);
+      const correctIndex = questions[index].correct;
+
+      const isActive = answers[correctIndex].classList.contains('correct');
+
+      // если уже подсвечен → убираем
+      if (isActive) {
+        answers.forEach(a => a.classList.remove('correct'));
+        return;
+      }
+
+      // иначе показываем
+      answers.forEach(a => a.classList.remove('correct'));
+      answers[correctIndex].classList.add('correct');
+    }
+
+    // 👉 добавили correct
+    const questions = [
+      {
+        question: "Какая планета самая большая в Солнечной системе?",
+        answers: ["Земля", "Марс", "Юпитер", "Венера", "Сатурн"],
+        correct: 2
+      },
+      {
+        question: "Сколько континентов на Земле?",
+        answers: ["5", "6", "7", "8", "9"],
+        correct: 2
+      },
+      {
+        question: "Какой океан самый большой?",
+        answers: ["Атлантический", "Индийский", "Северный Ледовитый", "Тихий", "Южный"],
+        correct: 3
+      },
+      {
+        question: "Кто написал Гарри Поттера?",
+        answers: ["Толкин", "Роулинг", "Кинг", "Мартин", "Пратчетт"],
+        correct: 1
+      },
+      {
+        question: "Сколько дней в году?",
+        answers: ["360", "364", "365", "366", "370"],
+        correct: 2
+      }
+    ];
+
+    const container = document.getElementById('slides');
+
+    questions.forEach((q, i) => {
+      const slide = document.createElement('div');
+      slide.className = 'swiper-slide';
+
+      const fullText = `
+    Вопрос ${i + 1}.
+    ${q.question}.
+    Варианты ответов.
+    ${q.answers.map((a, i) => `вариант ${i + 1}. ${a}`).join('. ')}
+  `;
+
+      slide.innerHTML = `
+    <div id="q${i}">
+      <b>Вопрос ${i + 1}</b>
+      <br><br>
+
+      ${q.question}<br><br>
+
+      ${q.answers.map((a, ai) => `
+        <div class="answer">${ai + 1}. ${a}</div>
+      `).join('')}
+
+      <br><br><br><br>
+
+      <button class="btn-answer" onclick='speak(${JSON.stringify(fullText)})'>
+        Озвучить 🔊
+      </button>
+
+      <button class="btn-answer" onclick='showAnswer(${i})'>
+        Ответ
+      </button>
+    </div>
+  `;
+
+      container.appendChild(slide);
+    });
+  </script>
+</body>
+
+</html>
